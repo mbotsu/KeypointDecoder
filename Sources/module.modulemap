@@ -1,0 +1,10 @@
+module PoseDecoder {
+    header "include/KeypointDecoder.h"
+    header "include/ImageConvert.h"
+    export *
+}
+
+module PoseDecoderCPP {
+    header "include/keypoint_postprocess.h"
+    export *
+}
