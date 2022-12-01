@@ -24,7 +24,9 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .binaryTarget(
             name: "opencv2",
-            path: "Frameworks/opencv2.xcframework"),
+            url: "https://github.com/mbotsu/KeypointDecoder/releases/download/0.0.1/opencv2.xcframework.zip",
+            checksum: "9e1f0de010124ac5ae0d303e51a985b6a8a8de88e033224a970c1df14846c58d"
+        ),
         .target(
             name: "KeypointDecoderCPP",
             dependencies: ["opencv2"],
