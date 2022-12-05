@@ -44,12 +44,15 @@ const size_t modelHeight = 256;
   
   std::vector<float> keypoints;
   
+  cv::Mat image;
+  UIImageToMat(uiImage, image);
+  
   for (int j = 0; j < num; ++j) {
     
     std::vector<float> box = { _boxes[j*4], _boxes[j*4+1], _boxes[j*4+2], _boxes[j*4+3] };
     std::vector<float> center;
     std::vector<float> scale;
-    CVPixelBufferRef pixelBuffer = preExecute(uiImage, box, modelWidth, modelHeight, center, scale);
+    CVPixelBufferRef pixelBuffer = preExecute(image, box, modelWidth, modelHeight, center, scale);
     
     DEBUG_MSG("center: " << center[0] << ", " << center[1] );
     DEBUG_MSG("scale: " << scale[0] << ", " << scale[1] );
@@ -65,17 +68,14 @@ const size_t modelHeight = 256;
   
 }
 
-CVPixelBufferRef preExecute(UIImage* uiImage,
+CVPixelBufferRef preExecute(cv::Mat image,
                 const std::vector<float> & box,
                 int modelWidth, int modelHeight,
                 std::vector<float> & center,
                 std::vector<float> & scale)
 {
-  cv::Mat image;
-  UIImageToMat(uiImage, image);
-  
-  float imageWidth = uiImage.size.width;
-  float imageHeight = uiImage.size.height;
+  float imageWidth = image.cols;
+  float imageHeight = image.rows;
   
   std::vector<float> _box(box);
   std::vector<float> image_size {imageHeight, imageWidth};
