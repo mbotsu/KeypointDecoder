@@ -51,12 +51,12 @@ const size_t modelHeight = 256;
     std::vector<float> box = { _boxes[j*4], _boxes[j*4+1], _boxes[j*4+2], _boxes[j*4+3] };
     std::vector<float> center;
     std::vector<float> scale;
-    UIImage *uiImage = preExecute(image, box, modelWidth, modelHeight, center, scale);
+    UIImage* preUIImage = preExecute(image, box, modelWidth, modelHeight, center, scale);
     
     DEBUG_MSG("center: " << center[0] << ", " << center[1] );
     DEBUG_MSG("scale: " << scale[0] << ", " << scale[1] );
     
-    std::vector<float> heatmap = [self predict:uiImage];
+    std::vector<float> heatmap = [self predict:preUIImage];
     
     std::vector<float> preds = postExecute(heatmap, modelWidth, modelHeight, center, scale);
     copy(preds.begin(), preds.end(), back_inserter(keypoints) );
