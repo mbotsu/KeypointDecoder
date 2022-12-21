@@ -4,7 +4,6 @@
 #include <vector>
 #include <numeric>
 #import "KeypointDecoder.h"
-#import "ImageConvert.h"
 #import "keypoint_postprocess.h"
 #import <mach/mach_time.h>
 #import <CoreML/CoreML.h>
@@ -52,13 +51,12 @@ const size_t modelHeight = 256;
     std::vector<float> box = { _boxes[j*4], _boxes[j*4+1], _boxes[j*4+2], _boxes[j*4+3] };
     std::vector<float> center;
     std::vector<float> scale;
-    CVPixelBufferRef pixelBuffer = preExecute(image, box, modelWidth, modelHeight, center, scale);
+    UIImage *uiImage = preExecute(image, box, modelWidth, modelHeight, center, scale);
     
     DEBUG_MSG("center: " << center[0] << ", " << center[1] );
     DEBUG_MSG("scale: " << scale[0] << ", " << scale[1] );
     
-    std::vector<float> heatmap = [self predict:pixelBuffer];
-    CVBufferRelease(pixelBuffer);
+    std::vector<float> heatmap = [self predict:uiImage];
     
     std::vector<float> preds = postExecute(heatmap, modelWidth, modelHeight, center, scale);
     copy(preds.begin(), preds.end(), back_inserter(keypoints) );
@@ -68,7 +66,7 @@ const size_t modelHeight = 256;
   
 }
 
-CVPixelBufferRef preExecute(cv::Mat image,
+UIImage* preExecute(cv::Mat image,
                 const std::vector<float> & box,
                 int modelWidth, int modelHeight,
                 std::vector<float> & center,
@@ -93,16 +91,13 @@ CVPixelBufferRef preExecute(cv::Mat image,
   cv::Mat bgr;
   cv::cvtColor(cropped_box, bgr, cv::COLOR_RGB2BGR);
   
-  CVPixelBufferRef pixelbuffer = [[[ImageConvert alloc] init] getImageBufferFromMat:bgr];
-  
-  return pixelbuffer;
+  return MatToUIImage(bgr);
 }
 
--(std::vector<float>) predict: (CVPixelBufferRef) pixelbuffer
+-(std::vector<float>) predict: (UIImage*) uiImage
 {
   NSError *err;
-  MLFeatureValue *featureValue = [MLFeatureValue featureValueWithPixelBuffer: pixelbuffer];
-    
+  MLFeatureValue *featureValue = [MLFeatureValue featureValueWithCGImage: uiImage.CGImage pixelsWide: modelWidth pixelsHigh: modelHeight pixelFormatType:kCVPixelFormatType_32BGRA options:nil error:&err];
   NSString *inputName = [[[[self.model modelDescription] inputDescriptionsByName] allKeys] firstObject];
   NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:featureValue, inputName, nil];
   MLDictionaryFeatureProvider *input = [[MLDictionaryFeatureProvider alloc] initWithDictionary:@{inputName: featureValue} error:&err];

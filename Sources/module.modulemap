@@ -1,6 +1,5 @@
 module PoseDecoder {
     header "include/KeypointDecoder.h"
-    header "include/ImageConvert.h"
     export *
 }
 
