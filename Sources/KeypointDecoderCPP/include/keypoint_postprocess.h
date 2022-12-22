@@ -55,7 +55,3 @@ void get_final_preds(std::vector<float>& heatmap,
                      std::vector<float>& preds,
                      int batchid,
                      bool DARK = true);
-void box2cs(const std::vector<float> & box,
-            std::vector<float> & center,
-            std::vector<float> & scale,
-            std::vector<float> image_size);

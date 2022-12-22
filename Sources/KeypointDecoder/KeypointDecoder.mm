@@ -11,6 +11,8 @@
 const size_t keypointsNumber = 17;
 const size_t modelWidth = 192;
 const size_t modelHeight = 256;
+const float aspect_ratio = modelWidth * 1.0 / modelHeight;
+const float pixel_std = 200.0;
 
 @implementation KeypointDecoder
 
@@ -72,12 +74,7 @@ UIImage* preExecute(cv::Mat image,
                 std::vector<float> & center,
                 std::vector<float> & scale)
 {
-  float imageWidth = image.cols;
-  float imageHeight = image.rows;
-  
-  std::vector<float> _box(box);
-  std::vector<float> image_size {imageHeight, imageWidth};
-  box2cs(_box, center, scale, image_size);
+  box2cs(box, center, scale);
   
   std::vector<int> output_size = {modelWidth, modelHeight};
   cv::Mat trans;
@@ -286,6 +283,40 @@ float sign(float A){
   UIImage *preview = MatToUIImage(outputImg);
   outputImg.release();
   return preview;
+}
+
+std::vector<float> xywh2cs(float x, float y, float w, float h) {
+  std::vector<float> center(2, 0);
+  center[0] = x + w * 0.5;
+  center[1] = y + h * 0.5;
+
+  if (w > aspect_ratio * h) {
+    h = w * 1.0 / aspect_ratio;
+  } else if (w < aspect_ratio * h) {
+    w = h * aspect_ratio;
+  }
+  std::vector<float> scale = {static_cast<float>(w * 1.0 / pixel_std), static_cast<float>(h * 1.0 / pixel_std)};
+  if (center[0] != -1) {
+    std::transform(scale.begin(), scale.end(), scale.begin(),
+                   std::bind(std::multiplies<float>(), std::placeholders::_1, 1.25));
+  }
+  return {center[0], center[1], scale[0], scale[1]};
+}
+
+void box2cs(const std::vector<float> & box,
+            std::vector<float> & center,
+            std::vector<float> & scale){
+
+  float x, y, w, h;
+  x = box[0];
+  y = box[1];
+  w = box[2];
+  h = box[3];
+  const std::vector<float> & bbox = xywh2cs(x, y, w, h);
+
+  center = { bbox[0], bbox[1] };
+  scale = { bbox[2], bbox[3] };
+
 }
 
 struct HumanPose {

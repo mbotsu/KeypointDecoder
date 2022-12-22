@@ -231,28 +231,3 @@ void get_final_preds(std::vector<float>& heatmap,
   std::vector<int> img_size{heatmap_width, heatmap_height};
   transform_preds(coords, center, scale, img_size, dim, preds);
 }
-
-void box2cs(const std::vector<float> & box,
-            std::vector<float> & center,
-            std::vector<float> & scale,
-            std::vector<float> image_size){
-  float input_h = image_size[0];
-  float input_w = image_size[1];
-  float aspect_ratio = input_h / input_w;
-
-  float x = box[0];
-  float y = box[1];
-  float w = box[2];
-  float h = box[3];
-  float cx = x + w * 0.5;
-  float cy = y + h * 0.5;
-  center = {cx, cy};
-
-  if(w > aspect_ratio * h)
-    h = w * 1.0 / aspect_ratio;
-  else if(w < aspect_ratio * h)
-    w = h * aspect_ratio;
-  float cw = w / 200.0 * 1.25;
-  float ch = h / 200.0 * 1.25;
-  scale = {cw, ch};
-}
